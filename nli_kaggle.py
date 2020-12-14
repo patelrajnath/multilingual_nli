@@ -75,4 +75,5 @@ pred_scores = model.predict(sentence_pairs, convert_to_numpy=True, show_progress
 pred_labels = np.argmax(pred_scores, axis=1)
 
 out_df = pandas.DataFrame([ids, pred_labels]).transpose()
+out_df = out_df.rename(columns={0: 'id', 1: 'prediction'})
 out_df.to_csv('submission.csv', index=False)
