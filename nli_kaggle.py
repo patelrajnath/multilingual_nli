@@ -41,7 +41,7 @@ for id, row in df.iterrows():
     train_samples.append(InputExample(texts=[row['premise'], row['hypothesis']], label=label_id))
 
 train_batch_size = 16
-num_epochs = 0
+num_epochs = 10
 model_save_path = 'output/training_allnli-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define our CrossEncoder model. We use distilroberta-base as basis and setup it up to predict 3 labels
@@ -70,8 +70,6 @@ for id, row in df.iterrows():
     label_id = 0
     ids.append(row['id'])
     sentence_pairs.append([row['premise'], row['hypothesis']])
-    if id == 10:
-        break
 
 pred_scores = model.predict(sentence_pairs, convert_to_numpy=True, show_progress_bar=False)
 pred_labels = np.argmax(pred_scores, axis=1)
