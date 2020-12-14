@@ -35,8 +35,10 @@ logging.info("Read AllNLI train dataset")
 label2int = {"contradiction": 0, "entailment": 1, "neutral": 2}
 train_samples = []
 dev_samples = []
-df = pandas.read_csv(dataset_path)
-for id, row in df.iterrows():
+train_data = pandas.read_csv(dataset_path)
+train_data['label'] = train_data['label'].replace([0, 2], [2, 0])
+
+for id, row in train_data.iterrows():
     label_id = int(row['label'])
     train_samples.append(InputExample(texts=[row['premise'], row['hypothesis']], label=label_id))
 
@@ -75,9 +77,10 @@ for id, row in df.iterrows():
     ids.append(row['id'])
     sentence_pairs.append([row['premise'], row['hypothesis']])
 
-pred_scores = model.predict(sentence_pairs, convert_to_numpy=True, show_progress_bar=False)
+pred_scores = model.predict(sentence_pairs, convert_to_numpy=True, show_progress_bar=False, batch_size=4)
 pred_labels = np.argmax(pred_scores, axis=1)
 
 out_df = pandas.DataFrame([ids, pred_labels]).transpose()
 out_df = out_df.rename(columns={0: 'id', 1: 'prediction'})
+out_df['prediction'] = out_df['prediction'].replace([2, 0], [0, 2])
 out_df.to_csv('submission.csv', index=False)
