@@ -45,7 +45,11 @@ num_epochs = 10
 model_save_path = 'output/training_allnli-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define our CrossEncoder model. We use distilroberta-base as basis and setup it up to predict 3 labels
-model = CrossEncoder('sentence-transformers/distilbert-base-nli-stsb-mean-tokens', num_labels=len(label2int))
+# model = CrossEncoder('sentence-transformers/distilbert-base-nli-stsb-mean-tokens', num_labels=len(label2int))
+# model = CrossEncoder('sentence-transformers/distilbert-multilingual-nli-stsb-quora-ranking',
+#                      num_labels=len(label2int))
+# model = CrossEncoder('sentence-transformers/xlm-r-100langs-bert-base-nli-mean-tokens', num_labels=len(label2int))
+model = CrossEncoder('joeddav/xlm-roberta-large-xnli', num_labels=len(label2int))
 
 # We wrap train_samples, which is a list ot InputExample, in a pytorch DataLoader
 train_dataloader = DataLoader(train_samples, shuffle=True, batch_size=train_batch_size)
