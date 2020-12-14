@@ -14,6 +14,7 @@ from sentence_transformers.cross_encoder.evaluation import CESoftmaxAccuracyEval
 from sentence_transformers.readers import InputExample
 import logging
 from datetime import datetime
+import numpy as np
 import csv
 
 #### Just some code to print debug information to stdout
@@ -40,7 +41,7 @@ for id, row in df.iterrows():
     train_samples.append(InputExample(texts=[row['premise'], row['hypothesis']], label=label_id))
 
 train_batch_size = 16
-num_epochs = 4
+num_epochs = 0
 model_save_path = 'output/training_allnli-' + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Define our CrossEncoder model. We use distilroberta-base as basis and setup it up to predict 3 labels
@@ -50,7 +51,7 @@ model = CrossEncoder('sentence-transformers/distilbert-base-nli-stsb-mean-tokens
 train_dataloader = DataLoader(train_samples, shuffle=True, batch_size=train_batch_size)
 
 # During training, we use CESoftmaxAccuracyEvaluator to measure the accuracy on the dev set.
-# evaluator = CESoftmaxAccuracyEvaluator.from_input_examples(dev_samples, name='AllNLI-dev')
+evaluator = CESoftmaxAccuracyEvaluator.from_input_examples(dev_samples, name='AllNLI-dev')
 
 warmup_steps = math.ceil(len(train_dataloader) * num_epochs * 0.1)  # 10% of train data for warm-up
 logging.info("Warmup-steps: {}".format(warmup_steps))
@@ -60,3 +61,20 @@ model.fit(train_dataloader=train_dataloader,
           epochs=num_epochs,
           warmup_steps=warmup_steps,
           output_path=model_save_path)
+
+test_dataset = 'contradictory-my-dear-watson/test.csv'
+df = pandas.read_csv(test_dataset)
+sentence_pairs = []
+ids = []
+for id, row in df.iterrows():
+    label_id = 0
+    ids.append(row['id'])
+    sentence_pairs.append([row['premise'], row['hypothesis']])
+    if id == 10:
+        break
+
+pred_scores = model.predict(sentence_pairs, convert_to_numpy=True, show_progress_bar=False)
+pred_labels = np.argmax(pred_scores, axis=1)
+
+out_df = pandas.DataFrame([ids, pred_labels]).transpose()
+out_df.to_csv('submission.csv', index=False)
